@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> <!-- Axios CDN -->
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="logo">MyWebsite</div>
+        <ul id="ulnav">
+            <li class="li"><a href="/">Home</a></li>
+            <li class="li"><a href="/about">About Us</a></li>
+            <li class="li"><a href="/contact">Contact Us</a></li>
+            <li class="li" id="meli"></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="authentication">
+            <div class="signup">
+                <h2>Enter Credentials to SignUp</h2>
+                <input type="text" class="signup1" id="userE" placeholder="Enter username">
+                <input type="password" class="signup2" id="passE" placeholder="Enter password">
+                <button class="signupbtn" onclick="signup()">Sign up</button>
+            </div>
+            <div class="signin">
+                <h2>Enter Credentials to SignIn</h2>
+                <input type="text" class="signin1" id="userC" placeholder="Enter username">
+                <input type="password" class="signin2" id="passC" placeholder="Enter password">
+                <button class="signupbtn" onclick="signin()">Sign in</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; All rights reserved.</p>
+    </footer>
+
+    <script>
+
+        function updateNavbar() {
+            const username = localStorage.getItem("username");
+            const token = localStorage.getItem("token");
+            console.log(username, token)
+            let meli = document.getElementById("meli");
+
+            if (username) {
+                meli.innerHTML = `<a href="" onclick="me()">${username}</a> `;
+              
+
+            } else {
+                meli.innerHTML = `<a href="#" onclick="signin()">Sign In</a>`;
+            }
+        }
+
+        async function signup() {
+            try {
+                const username = document.getElementById('userE').value.trim();
+                const password = document.getElementById('passE').value.trim();
+
+                if (!username || !password) {
+                    alert("Please enter both username and password");
+                    return;
+                }
+
+                const response = await axios.post('/signup', { username, password });
+                console.log(response.data);
+
+                alert("User successfully signed up! Please sign in.");
+            } catch (error) {
+                console.error("Signup error:", error.response?.data || error);
+                alert("Signup failed. Try again.");
+            }
+        }
+
+        async function signin() {
+            try {
+                const username = document.getElementById('userC').value.trim();
+                const password = document.getElementById('passC').value.trim();
+
+                if (!username || !password) {
+                    alert("Please enter both username and password");
+                    return;
+                }
+
+                const response = await axios.post('/signin', { username, password });
+
+                if (response.data.token) {
+                    console.log(response.data.token);
+                    localStorage.setItem("token", response.data.token);
+                    localStorage.setItem("username", username); 
+
+                    alert("User successfully signed in!");
+                    updateNavbar(); 
+                } else {
+                    alert("Invalid credentials. Try again.");
+                }
+            } catch (error) {
+                console.error("Signin error:", error.response?.data || error);
+                alert("Signin failed. Try again.");
+            }
+        }
+
+        async function me() {
+            alert("in me function")
+
+
+            try {
+                const token = localStorage.getItem("token");
+                const username = localStorage.getItem("username"); // ✅ Get username
+                console.log(token, username)
+
+                alert("in try block")
+
+                if (!token) {
+                    alert("You need to sign in first!");
+                    return;
+                }
+
+                const response = await axios.get('/me', {
+                    headers: {
+                        Authorization: token,
+                        "X-Username": username
+                    }
+                });
+
+                console.log("User details:", response.data);
+                
+            
+
+
+            } catch (error) {
+                console.error("Auth error:", error.response?.data || error);
+                alert("You are not authorized. Please sign in again.");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("username");
+            alert("You have been logged out.");
+            updateNavbar();
+            window.location.href = "/";
+        }
+
+    </script>
+</body>
+
+</html>
